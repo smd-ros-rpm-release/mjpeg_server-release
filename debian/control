@@ -1,0 +1,12 @@
+Source: ros-groovy-mjpeg-server
+Section: misc
+Priority: extra
+Maintainer: Russell Toris <rctoris@wpi.edu>
+Build-Depends: debhelper (>= 7.0.50~), ros-groovy-catkin, ros-groovy-cv-bridge, ros-groovy-image-transport, ros-groovy-roscpp, ros-groovy-roslib, ros-groovy-std-msgs
+Homepage: http://ros.org/wiki/mjpeg_server
+Standards-Version: 3.9.2
+
+Package: ros-groovy-mjpeg-server
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, ros-groovy-cv-bridge, ros-groovy-image-transport, ros-groovy-roscpp, ros-groovy-roslib, ros-groovy-std-msgs
+Description: A ROS Node to Stream Image Topics Via a MJPEG Server
