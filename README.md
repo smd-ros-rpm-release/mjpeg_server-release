@@ -1,3 +1,22 @@
+## mjpeg_server (hydro) - 1.1.1-0
+
+User `rctoris@RCT-DESKTOP` released the packages in the `mjpeg_server` repository into the `hydro` distro by running `/usr/bin/bloom-release --rosdistro hydro --track hydro mjpeg_server --new-track` on `Fri, 04 Apr 2014 17:22:40 -0000`
+
+The `mjpeg_server` package was released.
+
+Version of package(s) in repository `mjpeg_server`:
+- rosdistro version: `1.1.0-0`
+- old version: `1.1.0-0`
+- new version: `1.1.1-0`
+
+Versions of tools used:
+- bloom version: `0.5.2`
+- catkin_pkg version: `0.1.27`
+- rosdep version: `0.10.25`
+- rosdistro version: `0.3.4`
+- vcstools version: `0.1.33`
+
+
 ## mjpeg_server (groovy) - 1.1.1-0
 
 User `rctoris@RCT-DESKTOP` released the packages in the `mjpeg_server` repository into the `groovy` distro by running `/usr/bin/bloom-release --rosdistro groovy --track groovy mjpeg_server --new-track` on `Fri, 04 Apr 2014 17:15:58 -0000`
