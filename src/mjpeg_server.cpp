@@ -2,7 +2,7 @@
  *
  * Software License Agreement (BSD License)
  *
- *  Copyright (c) 2010, Robert Bosch LLC.
+ *  Copyright (c) 2014, Robert Bosch LLC.
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -457,7 +457,7 @@ void MJPEGServer::sendStream(int fd, const char *parameter)
   int frame_size = 0, max_frame_size = 0;
   int tenk = 10 * 1024;
   char buffer[BUFFER_SIZE] = {0};
-  struct timeval timestamp;
+  double timestamp;
   //sensor_msgs::CvBridge image_bridge;
   //sensor_msgs::cv_bridge image_bridge;
   cv_bridge::CvImage image_bridge;
@@ -474,6 +474,7 @@ void MJPEGServer::sendStream(int fd, const char *parameter)
     return;
 
   std::string topic = itp->second;
+  increaseSubscriberCount(topic);
   ImageBuffer* image_buffer = getImageBuffer(topic);
 
   ROS_DEBUG("preparing header");
@@ -582,7 +583,7 @@ void MJPEGServer::sendStream(int fd, const char *parameter)
       }
 
       /* copy v4l2_buffer timeval to user space */
-      timestamp.tv_sec = ros::Time::now().toSec();
+      timestamp = ros::Time::now().toSec();
 
       memcpy(frame, &encoded_buffer[0], frame_size);
       ROS_DEBUG("got frame (size: %d kB)", frame_size / 1024);
@@ -595,9 +596,9 @@ void MJPEGServer::sendStream(int fd, const char *parameter)
      */
     sprintf(buffer, "Content-Type: image/jpeg\r\n"
             "Content-Length: %d\r\n"
-            "X-Timestamp: %d.%06d\r\n"
+            "X-Timestamp: %.06lf\r\n"
             "\r\n",
-            frame_size, (int)timestamp.tv_sec, (int)timestamp.tv_usec);
+            frame_size, (double)timestamp);
     ROS_DEBUG("sending intemdiate header");
     if (write(fd, buffer, strlen(buffer)) < 0)
       break;
@@ -613,6 +614,9 @@ void MJPEGServer::sendStream(int fd, const char *parameter)
   }
 
   free(frame);
+  decreaseSubscriberCount(topic);
+  unregisterSubscriberIfPossible(topic);
+
 }
 
 void MJPEGServer::sendSnapshot(int fd, const char *parameter)
@@ -620,7 +624,7 @@ void MJPEGServer::sendSnapshot(int fd, const char *parameter)
   unsigned char *frame = NULL;
   int frame_size = 0;
   char buffer[BUFFER_SIZE] = {0};
-  struct timeval timestamp;
+  double timestamp;
   //sensor_msgs::CvBridge image_bridge;
   //sensor_msgs::cv_bridge image_bridge;
 
@@ -633,6 +637,7 @@ void MJPEGServer::sendSnapshot(int fd, const char *parameter)
     return;
 
   std::string topic = itp->second;
+  increaseSubscriberCount(topic);
   ImageBuffer* image_buffer = getImageBuffer(topic);
 
   /* wait for fresh frames */
@@ -714,7 +719,7 @@ void MJPEGServer::sendSnapshot(int fd, const char *parameter)
   }
 
   /* copy v4l2_buffer timeval to user space */
-  timestamp.tv_sec = ros::Time::now().toSec();
+  timestamp = ros::Time::now().toSec();
 
   memcpy(frame, &encoded_buffer[0], frame_size);
   ROS_DEBUG("got frame (size: %d kB)", frame_size / 1024);
@@ -723,9 +728,9 @@ void MJPEGServer::sendSnapshot(int fd, const char *parameter)
   sprintf(buffer, "HTTP/1.0 200 OK\r\n"
           "%s"
           "Content-type: image/jpeg\r\n"
-          "X-Timestamp: %d.%06d\r\n"
+          "X-Timestamp: %.06lf\r\n"
           "\r\n",
-          header.c_str(), (int)timestamp.tv_sec, (int)timestamp.tv_usec);
+          header.c_str(), (double)timestamp);
 
   /* send header and image now */
   if (write(fd, buffer, strlen(buffer)) < 0 || write(fd, frame, frame_size) < 0)
@@ -735,6 +740,8 @@ void MJPEGServer::sendSnapshot(int fd, const char *parameter)
   }
 
   free(frame);
+  decreaseSubscriberCount(topic);
+  unregisterSubscriberIfPossible(topic);
 }
 
 void MJPEGServer::client(int fd)
@@ -879,7 +886,6 @@ void MJPEGServer::client(int fd)
 
   close(fd);
   freeRequest(&req);
-
   ROS_INFO("Disconnecting HTTP client");
   return;
 }
@@ -1056,6 +1062,56 @@ void MJPEGServer::stop()
   stop_requested_ = true;
 }
 
+void MJPEGServer::decreaseSubscriberCount(const std::string topic)
+{
+  boost::unique_lock<boost::mutex> lock(image_maps_mutex_);
+  ImageSubscriberCountMap::iterator it = image_subscribers_count_.find(topic);
+  if (it != image_subscribers_count_.end())
+  {
+    if (image_subscribers_count_[topic] == 1) {
+      image_subscribers_count_.erase(it);
+      ROS_INFO("no subscribers for %s", topic.c_str());
+    }
+    else if (image_subscribers_count_[topic] > 0) {
+      image_subscribers_count_[topic] = image_subscribers_count_[topic] - 1;
+      ROS_INFO("%lu subscribers for %s", image_subscribers_count_[topic], topic.c_str());
+    }
+  }
+  else
+  {
+    ROS_INFO("no subscribers counter for %s", topic.c_str());
+  }
+}
+
+void MJPEGServer::increaseSubscriberCount(const std::string topic)
+{
+  boost::unique_lock<boost::mutex> lock(image_maps_mutex_);
+  ImageSubscriberCountMap::iterator it = image_subscribers_count_.find(topic);
+  if (it == image_subscribers_count_.end())
+  {
+    image_subscribers_count_.insert(ImageSubscriberCountMap::value_type(topic, 1));
+  }
+  else {
+    image_subscribers_count_[topic] = image_subscribers_count_[topic] + 1;
+  }
+  ROS_INFO("%lu subscribers for %s", image_subscribers_count_[topic], topic.c_str());
+}
+
+void MJPEGServer::unregisterSubscriberIfPossible(const std::string topic)
+{
+  boost::unique_lock<boost::mutex> lock(image_maps_mutex_);
+  ImageSubscriberCountMap::iterator it = image_subscribers_count_.find(topic);
+  if (it == image_subscribers_count_.end() ||
+      image_subscribers_count_[topic] == 0)
+  {
+    ImageSubscriberMap::iterator sub_it = image_subscribers_.find(topic);
+    if (sub_it != image_subscribers_.end())
+    {
+      ROS_INFO("Unsubscribing from %s", topic.c_str());
+      image_subscribers_.erase(sub_it);
+    }
+  }
+}
 }
 
 int main(int argc, char** argv)
