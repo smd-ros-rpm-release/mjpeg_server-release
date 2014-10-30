@@ -1,3 +1,24 @@
+## mjpeg_server (indigo) - 1.1.2-0
+
+The packages in the `mjpeg_server` repository were released into the `indigo` distro by running `/usr/bin/bloom-release --rosdistro indigo --track indigo mjpeg_server --new-track` on `Thu, 30 Oct 2014 18:07:00 -0000`
+
+The `mjpeg_server` package was released.
+
+Version of package(s) in repository `mjpeg_server`:
+- upstream repository: https://github.com/RobotWebTools/mjpeg_server.git
+- release repository: https://github.com/RobotWebTools-release/mjpeg_server-release.git
+- rosdistro version: `1.1.1-0`
+- old version: `1.1.1-0`
+- new version: `1.1.2-0`
+
+Versions of tools used:
+- bloom version: `0.5.12`
+- catkin_pkg version: `0.2.6`
+- rosdep version: `0.10.32`
+- rosdistro version: `0.3.6`
+- vcstools version: `0.1.35`
+
+
 ## mjpeg_server (hydro) - 1.1.2-0
 
 The packages in the `mjpeg_server` repository were released into the `hydro` distro by running `/usr/bin/bloom-release --rosdistro hydro --track hydro mjpeg_server --new-track` on `Thu, 30 Oct 2014 18:03:01 -0000`
