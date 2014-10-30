@@ -1,0 +1,37 @@
+ros-hydro-mjpeg-server (1.1.2-0precise) precise; urgency=high
+
+  * ROS_WARN added
+  * DEPRECATION NOTICE
+  * Contributors: Russell Toris
+
+ -- Russell Toris <rctoris@wpi.edu>  Thu, 30 Oct 2014 04:00:00 -0000
+
+ros-hydro-mjpeg-server (1.1.1-0precise) precise; urgency=high
+
+  * cleanup for indigo
+  * Merge pull request #6 <https://github.com/RobotWebTools/mjpeg_server/issues/6> from garaemon/unregister-nonused-topic
+    Unregister non-used subscribers
+  * add documentation
+  * remove a subscriber in sendStream and sendSnapshot
+  * unregister Subscriber if the number of subscribers for the topic equals to 0
+  * Merge pull request #4 <https://github.com/RobotWebTools/mjpeg_server/issues/4> from nus/fixed-timestamp
+    Fixed timestamp
+  * Fixed the streaming timestamp
+  * Fixed the snapshot timestamp
+  * Merge pull request #1 <https://github.com/RobotWebTools/mjpeg_server/issues/1> from rctoris/groovy-devel
+    Cleanup/Travis Added
+  * Header files now installed
+  * minor cleanup and travis added
+  * Minor cleanup and change of READMEs and such
+  * Contributors: Brandon Alexander, Russell Toris, Ryohei Ueda, yota
+
+ -- Russell Toris <rctoris@wpi.edu>  Fri, 04 Apr 2014 04:00:00 -0000
+
+ros-hydro-mjpeg-server (1.1.0-0precise) precise; urgency=high
+
+  * initial commit
+  * Contributors: Russell Toris
+
+ -- Russell Toris <rctoris@wpi.edu>  Wed, 01 May 2013 04:00:00 -0000
+
+
